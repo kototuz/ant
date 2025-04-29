@@ -5,6 +5,7 @@
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>
+#include <sys/stat.h>
 
 #include <android/log.h>
 
@@ -17,6 +18,13 @@ JNIEXPORT jint JNICALL Java_com_kototuz_ant_NativeLoader_spawnShell(JNIEnv *env,
     if (pid == -1) return -1;
 
     if (pid == 0) {
+        if (mkdir("/data/data/com.kototuz.ant/home", 0777) == -1) {
+            __android_log_print(ANDROID_LOG_ERROR, TAG, "ERROR: Could not create home directory: %s", strerror(errno));
+        }
+        if (setenv("HOME", "/data/data/com.kototuz.ant/home", 1) == -1) {
+            __android_log_print(ANDROID_LOG_ERROR, TAG, "ERROR: Could not set 'HOME': %s", strerror(errno));
+        }
+
         char prog[] = "sh";
         char *args[] = {&prog[0], NULL};
         int status = execvp("sh", &args[0]);
