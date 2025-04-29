@@ -51,7 +51,6 @@ JNIEXPORT jbyteArray JNICALL Java_com_kototuz_ant_NativeLoader_readShell(JNIEnv 
     } else {
         result = (*env)->NewByteArray(env, read_len);
         (*env)->SetByteArrayRegion(env, result, 0, read_len, buf);
-        __android_log_print(ANDROID_LOG_INFO, TAG, "Reading: %.*s", read_len, buf);
     }
 
 

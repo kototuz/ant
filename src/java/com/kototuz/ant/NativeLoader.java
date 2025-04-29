@@ -56,7 +56,12 @@ public class NativeLoader extends android.app.Activity {
             public void run() {
                 byte[] bytes = readShell(pty_fd);
                 if (bytes.length > 0) {
-                    shellBuffer += new String(bytes, StandardCharsets.UTF_8);
+                    String str = new String(bytes, StandardCharsets.UTF_8);
+                    if (str.startsWith("\033[2J\033[H")) {
+                        shellBuffer = str.substring(7, str.length());
+                    } else {
+                        shellBuffer += str;
+                    }
                     output.setText(shellBuffer);
                 }
 
