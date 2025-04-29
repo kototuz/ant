@@ -7,12 +7,15 @@
         android:scrollbars="vertical"
         android:id="@+id/output"
         android:layout_width="fill_parent"
+        android:fontFamily="@font/jetbrains_mono"
         android:layout_height="fill_parent"/>
     <EditText
+        style="@style/PromptStyle"
         android:id="@+id/prompt"
         android:layout_height="50dp"
         android:layout_width="match_parent"
         android:layout_gravity="bottom"
         android:imeOptions="actionSend"
+        android:fontFamily="@font/jetbrains_mono"
         android:inputType="text"/>
 </FrameLayout>

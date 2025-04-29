@@ -10,11 +10,17 @@ package com.kototuz.ant;
 public final class R {
     public static final class attr {
     }
+    public static final class font {
+        public static final int jetbrains_mono=0x7f020000;
+    }
     public static final class id {
-        public static final int output=0x7f030000;
-        public static final int prompt=0x7f030001;
+        public static final int output=0x7f050000;
+        public static final int prompt=0x7f050001;
     }
     public static final class layout {
-        public static final int simple_layout=0x7f020000;
+        public static final int simple_layout=0x7f030000;
+    }
+    public static final class style {
+        public static final int PromptStyle=0x7f040000;
     }
 }
