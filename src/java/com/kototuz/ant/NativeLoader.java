@@ -10,6 +10,7 @@ import android.view.inputmethod.*;
 import android.view.*;
 import android.text.Layout;
 import android.text.method.ScrollingMovementMethod;
+import android.graphics.Color;
 
 import java.nio.charset.StandardCharsets;
 import java.io.*;
@@ -28,6 +29,7 @@ public class NativeLoader extends android.app.Activity {
 
         output = findViewById(R.id.output);
         output.setMovementMethod(new ScrollingMovementMethod());
+        output.setTextColor(Color.WHITE);
 
         prompt = findViewById(R.id.prompt);
         prompt.setOnEditorActionListener(new TextView.OnEditorActionListener() {
@@ -43,7 +45,6 @@ public class NativeLoader extends android.app.Activity {
                 return handled;
             }
         });
-
         prompt.requestFocus();
 
         pty_fd = spawnShell();
@@ -54,11 +55,15 @@ public class NativeLoader extends android.app.Activity {
             @Override
             public void run() {
                 byte[] bytes = readShell(pty_fd);
-                shellBuffer += new String(bytes, StandardCharsets.UTF_8);
-                output.setText(shellBuffer);
+                if (bytes.length > 0) {
+                    shellBuffer += new String(bytes, StandardCharsets.UTF_8);
+                    output.setText(shellBuffer);
+                }
+
                 handler.postDelayed(this, 0);
             }
         });
+
     }
 
     private native int spawnShell();
