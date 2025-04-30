@@ -9,7 +9,32 @@
 
 #include <android/log.h>
 
-#define TAG "ant"
+#define LOG(prio, fmt, ...) __android_log_print(ANDROID_LOG_##prio, "ant", fmt, __VA_ARGS__)
+
+void prepare_shell(void)
+{
+    // We can run programs (using `linker64`) only in app folders
+    if (mkdir("/data/data/com.kototuz.ant/home", 0777) == -1 && errno != EEXIST) {
+        LOG(ERROR, "ERROR: Could not create home directory: %s", strerror(errno));
+        return;
+    }
+    if (setenv("HOME", "/data/data/com.kototuz.ant/home", 1) == -1) {
+        LOG(ERROR, "ERROR: Could not set 'HOME': %s", strerror(errno));
+    }
+
+    // Create run script to run executables by `$r <program>`
+    // NOTE: It is not work with scripts
+    FILE *file = fopen("/data/data/com.kototuz.ant/home/.run.sh", "w");
+    if (file == NULL) {
+        LOG(ERROR, "ERROR: Could not open run script: %s", strerror(errno));
+        return;
+    }
+    fputs("linker64 `pwd`/$@\n", file);
+    if (setenv("r", "sh /data/data/com.kototuz.ant/home/.run.sh", 1) == -1) {
+        LOG(ERROR, "ERROR: Could not set 'r': %s", strerror(errno));
+    }
+    fclose(file);
+}
 
 JNIEXPORT jint JNICALL Java_com_kototuz_ant_NativeLoader_spawnShell(JNIEnv *env, jobject this)
 {
@@ -18,17 +43,11 @@ JNIEXPORT jint JNICALL Java_com_kototuz_ant_NativeLoader_spawnShell(JNIEnv *env,
     if (pid == -1) return -1;
 
     if (pid == 0) {
-        if (mkdir("/data/data/com.kototuz.ant/home", 0777) == -1) {
-            __android_log_print(ANDROID_LOG_ERROR, TAG, "ERROR: Could not create home directory: %s", strerror(errno));
-        }
-        if (setenv("HOME", "/data/data/com.kototuz.ant/home", 1) == -1) {
-            __android_log_print(ANDROID_LOG_ERROR, TAG, "ERROR: Could not set 'HOME': %s", strerror(errno));
-        }
-
+        prepare_shell();
         char prog[] = "sh";
         char *args[] = {&prog[0], NULL};
         int status = execvp("sh", &args[0]);
-        __android_log_print(ANDROID_LOG_ERROR, TAG, "ERROR: Could not spawn shell: %s", strerror(status));
+        LOG(ERROR, "ERROR: Could not spawn shell: %s", strerror(status));
         exit(1);
     } else {
         int flags = fcntl(fd, F_GETFL, 0);
@@ -46,7 +65,7 @@ JNIEXPORT jbyteArray JNICALL Java_com_kototuz_ant_NativeLoader_readShell(JNIEnv 
     if (read_len == -1) {
         result = (*env)->NewByteArray(env, 0);
         if (errno != EAGAIN) {
-            __android_log_print(ANDROID_LOG_ERROR, TAG, "ERROR: Could not read shell: %s", strerror(errno));
+            LOG(ERROR, "ERROR: Could not read shell: %s", strerror(errno));
         }
     } else {
         result = (*env)->NewByteArray(env, read_len);
@@ -66,7 +85,7 @@ JNIEXPORT void JNICALL Java_com_kototuz_ant_NativeLoader_writeShell(JNIEnv *env,
     while (len > 0) {
         ssize_t written = write(pty_fd, ptr, len);
         if (written == -1) {
-            __android_log_print(ANDROID_LOG_ERROR, TAG, "ERROR: Could not write shell: %s", strerror(errno));
+            LOG(ERROR, "ERROR: Could not write shell: %s", strerror(errno));
             len = 0;
         } else {
             len -= written;
